@@ -58,15 +58,10 @@ poll_until_true = async (func, options, creds, duration, message) ->
 # Promise wrapper around request events that read "data" from the request's body.
 get_data = (request) ->
   promise (resolve, reject) ->
-    data = ""
-
     request.setEncoding "utf8"
     .on "data", (chunk) ->
-      data += chunk
-    .on "close", ->
-      resolve data
-    .on "error", (error) ->
-      resolve error
+      resolve chunk
+
 
 # Returns the parameters to AWS.config so the server can access the user's account.
 configure_aws = ->
@@ -141,7 +136,7 @@ kick = async (request, response)->
   console.log pathname
   console.log request
   if pathname == "/dns"
-    record = parse yield get_data request
+    record = parse yield get_data request 
     console.log record
     yield add_dns_record record
     #yield poll_until_true get_record_status, change_id, 5000
