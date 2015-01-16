@@ -56,7 +56,7 @@ poll_until_true = async (func, options, creds, duration, message) ->
 
 
 # Promise wrapper around request events that read "data" from the request's body.
-get_body = (request) ->
+get_data = (request) ->
   promise (resolve, reject) ->
     data = ""
 
