@@ -126,7 +126,7 @@ kick = async (request, response)->
   console.log "Made it to the function."
   pathname = url.parse(request.url).pathname
   console.log pathname
-  if pathname == "dns"
+  if pathname == "/dns"
     record = JSON.parse request.body
     console.log record
     yield add_dns_record record
