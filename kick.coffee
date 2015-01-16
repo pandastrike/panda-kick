@@ -89,7 +89,7 @@ add_dns_record = async (record) ->
           Action: "CREATE",
           ResourceRecordSet:
             Name: record.hostname,
-            Type: "A",
+            Type: "SRV",
             TTL: 60,
             ResourceRecords: [
               {
