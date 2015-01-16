@@ -126,7 +126,7 @@ kick = async (request, response)->
   console.log "Made it to the function."
   pathname = url.parse(request.url).pathname
   console.log pathname
-  console.log JSON.stringify request, null, "\t"
+  console.log request
   if pathname == "/dns"
     record = JSON.parse request.body
     console.log record
