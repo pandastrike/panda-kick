@@ -83,21 +83,21 @@ add_dns_record = async (record) ->
 
   params =
     HostedZoneId: record.zone_id
-      ChangeBatch:
-        Changes: [
-          {
-            Action: "CREATE",
-            ResourceRecordSet:
-              Name: record.hostname,
-              Type: "A",
-              TTL: 60,
-              ResourceRecords: [
-                {
-                  Value: record.ip_address
-                }
-              ]
-          }
-        ]
+    ChangeBatch:
+      Changes: [
+        {
+          Action: "CREATE",
+          ResourceRecordSet:
+            Name: record.hostname,
+            Type: "A",
+            TTL: 60,
+            ResourceRecords: [
+              {
+                Value: record.ip_address
+              }
+            ]
+        }
+      ]
 
   console.log params
   data = yield add_record params
@@ -131,14 +131,10 @@ get_record_status = async (change_id, creds) ->
 # Server Definition
 #=========================
 kick = async (request, response)->
-  console.log "Made it to the function."
   pathname = url.parse(request.url).pathname
-  console.log pathname
+
   if pathname == "/dns"
     record = parse yield get_data request
-    console.log record.zone_id
-    console.log record.hostname
-    console.log record.ip_address
     yield add_dns_record record
     #yield poll_until_true get_record_status, change_id, 5000
 
