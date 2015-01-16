@@ -136,7 +136,9 @@ kick = async (request, response)->
   console.log pathname
   if pathname == "/dns"
     record = parse yield get_data request
-    console.log record
+    console.log record.zone_id
+    console.log record.hostname
+    console.log record.ip_address
     yield add_dns_record record
     #yield poll_until_true get_record_status, change_id, 5000
 
