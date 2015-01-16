@@ -91,12 +91,13 @@ add_dns_record = async (record) ->
           }
         ]
 
+  console.log params
   data = yield add_record params
   if err
     console.log JSON.stringify err, null, "\t"
   else
     console.log JSON.stringify data, null, "\t"
-    
+
   return {
     result: data
     change_id: data.ChangeInfo.Id
@@ -122,14 +123,18 @@ get_record_status = async (change_id, creds) ->
 # Server Definition
 #=========================
 kick = async (request, response)->
-
+  console.log "Made it to the function."
   pathname = url.parse(request.url).pathname
-
+  console.log pathname
   if pathname == "dns"
     record = JSON.parse request.body
+    console.log record
     yield add_dns_record record
     #yield poll_until_true get_record_status, change_id, 5000
 
+    response.writeHead 201
+    .write "Record Added."
+    .end()
 
 
 
