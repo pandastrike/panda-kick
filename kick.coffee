@@ -66,7 +66,7 @@ get_data = (request) ->
 # Returns the parameters to AWS.config so the server can access the user's account.
 configure_aws = ->
 
-  config = parse( read( resolve( __dirname, kick.cson)))
+  config = parse( read( resolve( __dirname, "kick.cson")))
 
   return {
     accessKeyId: config.id
@@ -134,9 +134,8 @@ kick = async (request, response)->
   console.log "Made it to the function."
   pathname = url.parse(request.url).pathname
   console.log pathname
-  console.log request
   if pathname == "/dns"
-    record = parse yield get_data request 
+    record = parse yield get_data request
     console.log record
     yield add_dns_record record
     #yield poll_until_true get_record_status, change_id, 5000
