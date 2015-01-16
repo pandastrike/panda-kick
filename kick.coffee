@@ -99,7 +99,7 @@ add_dns_record = async (record) ->
         }
       ]
 
-  console.log params
+  console.log JSON.stringify params, null, "\t"
   data = yield add_record params
   if err
     console.log JSON.stringify err, null, "\t"
