@@ -62,6 +62,19 @@ get_data = (request) ->
     .on "data", (chunk) ->
       resolve chunk
 
+# We want to request explicit fields from the http requests for clairity, but AWS
+# needs SRV records to have a special format.
+build_record = (data) ->
+
+  config = parse( read( resolve( __dirname, "kick.cson")))
+
+  return {
+    zone_id: config.zone_id
+    hostname: data.hostname
+    ip_address: "#{data.priority} #{data.weight} #{data.port} #{data.ip_address}"
+  }
+
+
 
 # Returns the parameters to AWS.config so the server can access the user's account.
 configure_aws = ->
@@ -75,11 +88,33 @@ configure_aws = ->
     sslEnabled: true
   }
 
+# Get the DNS record currently associated with the hostname.
+get_current_record = async (hostname, zone_id) ->
+  try
+    AWS.config = configure_aws()
+    r53 = new AWS.Route53()
+    list_records = lift_object r53, r53.listResourceRecordSets
+
+    data = yield list_records {HostedZoneId: zone_id}
+
+    # We need to conduct a little parsing to extract the IP address of the record set.
+    record = where data.ResourceRecordSets, {Name:hostname}
+    if record.length == 0
+      return null
+    else
+      return {
+        current_ip_address: record[0].ResourceRecords[0].Value
+        current_type: record[0].Type
+      }
+
+  catch error
+    return build_error "Unable to access AWS Route 53.", error
+
 # Add a record to the HostedZone
 add_dns_record = async (record) ->
   AWS.config = configure_aws()
   r53 = new AWS.Route53()
-  add_record = lift_object r53, r53.changeResourceRecordSets
+  change_record = lift_object r53, r53.changeResourceRecordSets
 
   params =
     HostedZoneId: record.zone_id
@@ -99,7 +134,93 @@ add_dns_record = async (record) ->
         }
       ]
 
-  data = yield add_record params
+  data = yield change_record params
+  if err?
+    console.log JSON.stringify err, null, "\t"
+  else
+    console.log JSON.stringify data, null, "\t"
+
+  return {
+    result: data
+    change_id: data.ChangeInfo.Id
+  }
+
+
+# Delete a record from the HostedZone
+add_dns_record = async (record) ->
+  AWS.config = configure_aws()
+  r53 = new AWS.Route53()
+  change_record = lift_object r53, r53.changeResourceRecordSets
+
+  params =
+    HostedZoneId: record.zone_id
+    ChangeBatch:
+      Changes: [
+        {
+          Action: "DELETE",
+          ResourceRecordSet:
+            Name: record.hostname,
+            Type: "SRV",
+            TTL: 60,
+            ResourceRecords: [
+              {
+                Value: record.ip_address
+              }
+            ]
+        }
+      ]
+
+  data = yield change_record params
+  if err?
+    console.log JSON.stringify err, null, "\t"
+  else
+    console.log JSON.stringify data, null, "\t"
+
+  return {
+    result: data
+    change_id: data.ChangeInfo.Id
+  }
+
+
+# Update an existing record in the HostedZone
+update_dns_record = async (record) ->
+  AWS.config = configure_aws()
+  r53 = new AWS.Route53()
+  change_record = lift_object r53, r53.changeResourceRecordSets
+
+  {current_ip_address} = yield get_current_record(record.hostname, record.zone_id)
+
+  params =
+    HostedZoneId: record.zone_id
+    ChangeBatch:
+      Changes: [
+        {
+          Action: "DELETE",
+          ResourceRecordSet:
+            Name: record.hostname,
+            Type: "SRV",
+            TTL: 60,
+            ResourceRecords: [
+              {
+                Value: current_ip_address
+              }
+            ]
+        }
+        {
+          Action: "CREATE",
+          ResourceRecordSet:
+            Name: record.hostname,
+            Type: "SRV",
+            TTL: 60,
+            ResourceRecords: [
+              {
+                Value: record.ip_address
+              }
+            ]
+        }
+      ]
+
+  data = yield change_record params
   if err?
     console.log JSON.stringify err, null, "\t"
   else
@@ -130,23 +251,43 @@ get_record_status = async (change_id, creds) ->
 # Server Definition
 #=========================
 kick = async (request, response)->
-  pathname = url.parse(request.url).pathname
 
-  if pathname == "/dns"
-    record = parse yield get_data request
-    yield add_dns_record record
-    #yield poll_until_true get_record_status, change_id, 5000
+  record = build_record parse yield get_data request
 
-    response.writeHead 201
-    .write "Record Added."
-    .end()
+  switch request.method
+    when "POST"
+      {change_id} = yield add_dns_record record
+      response.writeHead 201
+      response.write "Record Added.  Waiting for DNS update."
+
+      yield poll_until_true get_record_status, change_id, 5000
+      response.write "Done."
+      response.end()
+
+    when "DELETE"
+      {change_id} = yield delete_dns_record record
+      response.writeHead 201
+      response.write "Record Deleted.  Waiting for DNS update."
+
+      yield poll_until_true get_record_status, change_id, 5000
+      response.write "Done."
+      response.end()
+
+    when "PUT"
+      {change_id} = yield update_dns_record record
+      response.writeHead 201
+      response.write "Record Updated.  Waiting for DNS update."
+
+      yield poll_until_true get_record_status, change_id, 5000
+      response.write "Done."
+      response.end()
 
 
 
 #=========================
 # Launch Server
 #=========================
-http.createServer(kick).listen(2000)
+http.createServer(kick).listen(80)
 console.log '===================================='
 console.log '  The server is online and ready.'
 console.log '===================================='
