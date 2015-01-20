@@ -147,7 +147,7 @@ add_dns_record = async (record) ->
 
 
 # Delete a record from the HostedZone
-add_dns_record = async (record) ->
+delete_dns_record = async (record) ->
   AWS.config = configure_aws()
   r53 = new AWS.Route53()
   change_record = lift_object r53, r53.changeResourceRecordSets
