@@ -16,6 +16,8 @@ http = require 'http'
 {parse} = require 'c50n'
 {read} = require 'fairmont'
 
+{where} = require 'underscore'
+
 # When Library
 {promise, lift} = require "when"
 {liftAll} = require "when/node"
@@ -231,37 +233,42 @@ get_record_status = async (change_id, creds) ->
 # Server Definition
 #=========================
 kick = async (request, response)->
+  try
+    record = build_record parse yield get_data request
 
-  record = build_record parse yield get_data request
+    switch request.method
+      when "POST"
+        {change_id} = yield add_dns_record record
+        response.writeHead 201
+        response.write "Record Added.  Waiting for DNS update."
 
-  switch request.method
-    when "POST"
-      {change_id} = yield add_dns_record record
-      response.writeHead 201
-      response.write "Record Added.  Waiting for DNS update."
+        yield poll_until_true get_record_status, change_id, 5000
+        response.write "Done."
+        response.end()
 
-      yield poll_until_true get_record_status, change_id, 5000
-      response.write "Done."
-      response.end()
+      when "DELETE"
+        {change_id} = yield delete_dns_record record
+        response.writeHead 201
+        response.write "Record Deleted.  Waiting for DNS update."
 
-    when "DELETE"
-      {change_id} = yield delete_dns_record record
-      response.writeHead 201
-      response.write "Record Deleted.  Waiting for DNS update."
+        yield poll_until_true get_record_status, change_id, 5000
+        response.write "Done."
+        response.end()
 
-      yield poll_until_true get_record_status, change_id, 5000
-      response.write "Done."
-      response.end()
+      when "PUT"
+        {change_id} = yield update_dns_record record
+        response.writeHead 201
+        response.write "Record Updated.  Waiting for DNS update."
 
-    when "PUT"
-      {change_id} = yield update_dns_record record
-      response.writeHead 201
-      response.write "Record Updated.  Waiting for DNS update."
+        yield poll_until_true get_record_status, change_id, 5000
+        response.write "Done."
+        response.end()
 
-      yield poll_until_true get_record_status, change_id, 5000
-      response.write "Done."
-      response.end()
-
+  catch error
+    response.writeHead 400
+    response.write "Apologies. Unable to set private DNS record."
+    response.write error
+    response.end()
 
 
 #=========================
