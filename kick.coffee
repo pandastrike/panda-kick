@@ -42,17 +42,12 @@ pause = (duration) ->
 
 # Repeatedly call "func" until it returns true.  This repeats at fixed intervals.
 poll_until_true = async (func, options, creds, duration, message) ->
-  try
-
-    while true
-      status = yield func options, creds
-      if status
-        return status         # Complete.
-      else
-        yield pause duration  # Not complete. Keep going.
-
-  catch error
-    return build_error message, error
+  while true
+    status = yield func options, creds
+    if status
+      return status         # Complete.
+    else
+      yield pause duration  # Not complete. Keep going.
 
 
 # Promise wrapper around request events that read "data" from the request's body.
