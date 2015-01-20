@@ -130,11 +130,6 @@ add_dns_record = async (record) ->
       ]
 
   data = yield change_record params
-  if err?
-    console.log JSON.stringify err, null, "\t"
-  else
-    console.log JSON.stringify data, null, "\t"
-
   return {
     result: data
     change_id: data.ChangeInfo.Id
@@ -166,11 +161,6 @@ delete_dns_record = async (record) ->
       ]
 
   data = yield change_record params
-  if err?
-    console.log JSON.stringify err, null, "\t"
-  else
-    console.log JSON.stringify data, null, "\t"
-
   return {
     result: data
     change_id: data.ChangeInfo.Id
@@ -216,11 +206,6 @@ update_dns_record = async (record) ->
       ]
 
   data = yield change_record params
-  if err?
-    console.log JSON.stringify err, null, "\t"
-  else
-    console.log JSON.stringify data, null, "\t"
-
   return {
     result: data
     change_id: data.ChangeInfo.Id
