@@ -230,7 +230,7 @@ update_dns_record = async (record) ->
 # This function checks the specified DNS record to see if its "INSYC", done updating.
 # It returns either true or false, and throws an exception if an AWS error is reported.
 get_record_status = async (change_id, creds) ->
-  AWS.config = set_aws_creds creds
+  AWS.config = configure_aws()
   r53 = new AWS.Route53()
   get_change = lift_object r53, r53.getChange
 
