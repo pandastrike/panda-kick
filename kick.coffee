@@ -66,7 +66,7 @@ build_record = (data) ->
   config = parse( read( resolve( __dirname, "kick.cson")))
 
   return {
-    zone_id: "/hostname/#{config.zone_id}"
+    zone_id: "/hostedzone/#{config.zone_id}"
     hostname: data.hostname
     ip_address: "#{data.priority} #{data.weight} #{data.port} #{data.ip_address}"
   }
