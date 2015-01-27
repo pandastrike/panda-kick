@@ -11,12 +11,13 @@
 url = require "url"
 http = require 'http'
 {resolve} = require "path"
+{readFile} = require "fs"
 
 # PandaStrike Libraries
 {parse} = require 'c50n'
-{read} = require 'fairmont'
 
-{where} = require 'underscore'
+# Awesome functional toolkit.
+{where, without} = require 'underscore'
 
 # When Library
 {promise, lift} = require "when"
@@ -26,6 +27,12 @@ async = (require "when/generator").lift
 
 # Amazon Web Services
 AWS = require 'aws-sdk'
+
+#------------------------
+# This array holds all ports that are reserved by services.
+# This is a temporary measure until a formal database with atomicity is implemented.
+occupied_ports = []
+#------------------------
 
 
 #=========================
@@ -52,6 +59,15 @@ poll_until_true = async (func, options, creds, duration, message) ->
       yield pause duration  # Not complete. Keep going.
 
 
+# This wraps Node's irregular, asynchronous readFile in a promise.
+read_file = (path) ->
+  promise (resolve, reject) ->
+    readFile path, "utf-8", (error, data) ->
+      if data?
+        resolve data
+      else
+        resolve error
+
 # Promise wrapper around request events that read "data" from the request's body.
 get_data = (request) ->
   promise (resolve, reject) ->
@@ -59,24 +75,40 @@ get_data = (request) ->
     .on "data", (chunk) ->
       resolve chunk
 
-# We want to request explicit fields from the http requests for clairity, but AWS
-# needs SRV records to have a special format.
-build_record = (data) ->
+# This function will select an unoccupied port.
+select_free_port = (min, max) ->
+  for port in [min..max]
+    unless port in occupied_ports
+      return port
 
-  config = parse( read( resolve( __dirname, "kick.cson")))
+
+# We want to use explicit fields from the HTTP requests for clairity, but AWS
+# needs SRV records to have a special format.
+build_record = async (data, method) ->
+
+  # Choose a free port if the user has requested one.
+  if data.port == "auto_private"
+    data.port = select_free_port 2001, 2999
+  if data.port == "auto_public"
+    data.port = select_free_port 3001, 3999
+
+  # Read credential information stored in kick.cson
+  config = parse( yield read_file( resolve( __dirname, "kick.cson")))
 
   return {
-    zone_id: "/hostedzone/#{config.zone_id}"
-    hostname: data.hostname
-    ip_address: "#{data.priority} #{data.weight} #{data.port} #{data.ip_address}"
+    port: data.port
+    record:
+      zone_id: "/hostedzone/#{config.zone_id}"
+      hostname: data.hostname
+      ip_address: "#{data.priority} #{data.weight} #{data.port} #{data.ip_address}"
   }
 
 
 
 # Returns the parameters to AWS.config so the server can access the user's account.
-configure_aws = ->
+configure_aws = async ->
 
-  config = parse( read( resolve( __dirname, "kick.cson")))
+  config = parse( yield read_file( resolve( __dirname, "kick.cson")))
 
   return {
     accessKeyId: config.id
@@ -88,7 +120,7 @@ configure_aws = ->
 # Get the DNS record currently associated with the hostname.
 get_current_record = async (hostname, zone_id) ->
   try
-    AWS.config = configure_aws()
+    AWS.config = yield configure_aws()
     r53 = new AWS.Route53()
     list_records = lift_object r53, r53.listResourceRecordSets
 
@@ -112,7 +144,7 @@ get_current_record = async (hostname, zone_id) ->
 
 # Add a record to the HostedZone
 add_dns_record = async (record) ->
-  AWS.config = configure_aws()
+  AWS.config = yield configure_aws()
   r53 = new AWS.Route53()
   change_record = lift_object r53, r53.changeResourceRecordSets
 
@@ -143,7 +175,7 @@ add_dns_record = async (record) ->
 
 # Delete a record from the HostedZone
 delete_dns_record = async (record) ->
-  AWS.config = configure_aws()
+  AWS.config = yield configure_aws()
   r53 = new AWS.Route53()
   change_record = lift_object r53, r53.changeResourceRecordSets
 
@@ -174,7 +206,7 @@ delete_dns_record = async (record) ->
 
 # Update an existing record in the HostedZone
 update_dns_record = async (record) ->
-  AWS.config = configure_aws()
+  AWS.config = yield configure_aws()
   r53 = new AWS.Route53()
   change_record = lift_object r53, r53.changeResourceRecordSets
 
@@ -220,7 +252,7 @@ update_dns_record = async (record) ->
 # This function checks the specified DNS record to see if its "INSYC", done updating.
 # It returns either true or false, and throws an exception if an AWS error is reported.
 get_record_status = async (change_id, creds) ->
-  AWS.config = configure_aws()
+  AWS.config = yield configure_aws()
   r53 = new AWS.Route53()
   get_change = lift_object r53, r53.getChange
 
@@ -237,7 +269,7 @@ get_record_status = async (change_id, creds) ->
 #=========================
 kick = async (request, response)->
   try
-    record = build_record parse yield get_data request
+    {record, port} = yield build_record parse yield get_data request
 
     switch request.method
       when "POST"
@@ -246,7 +278,8 @@ kick = async (request, response)->
         response.write "Record Added.  Waiting for DNS update."
 
         yield poll_until_true get_record_status, change_id, 5000
-        response.write "Done."
+        occupied_ports.push port
+        response.write "Done.   Port #{port} in use."
         response.end()
 
       when "DELETE"
@@ -255,7 +288,8 @@ kick = async (request, response)->
         response.write "Record Deleted.  Waiting for DNS update."
 
         yield poll_until_true get_record_status, change_id, 5000
-        response.write "Done."
+        occupied_ports = without occupied_ports, port
+        response.write "Done.   Port #{port} in use."
         response.end()
 
       when "PUT"
@@ -264,7 +298,7 @@ kick = async (request, response)->
         response.write "Record Updated.  Waiting for DNS update."
 
         yield poll_until_true get_record_status, change_id, 5000
-        response.write "Done."
+        response.write "Done.   Port #{port} in use."
         response.end()
 
   catch error
