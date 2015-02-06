@@ -8,7 +8,6 @@
 # Modules
 #=========================
 # Core Libraries
-url = require "url"
 http = require 'http'
 {resolve} = require "path"
 {readFile} = require "fs"
@@ -105,10 +104,10 @@ build_record = async (data, method) ->
   try
     # Read credential information stored in kick.cson
     config = parse( yield read_file( resolve( __dirname, "kick.cson")))
-    #console.log data, config
+    console.log data, config
     # Figure out the host zone's ID from the query's hostname field.
     hosted_zone = get_hosted_zone data.hostname
-    #console.log hosted_zone
+    console.log hosted_zone
     if hosted_zone == config.public_hosted_zone
       zone_id = config.public_dns_id
     else if hosted_zone == config.private_hosted_zone
