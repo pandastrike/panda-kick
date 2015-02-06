@@ -183,7 +183,7 @@ add_dns_record = async (record) ->
           Action: "CREATE",
           ResourceRecordSet:
             Name: record.hostname,
-            Type: "A",
+            Type: record.type,
             TTL: 60,
             ResourceRecords: [
               {
@@ -214,7 +214,7 @@ delete_dns_record = async (record) ->
           Action: "DELETE",
           ResourceRecordSet:
             Name: record.hostname,
-            Type: "A",
+            Type: record.type,
             TTL: 60,
             ResourceRecords: [
               {
@@ -257,7 +257,7 @@ update_dns_record = async (record) ->
           Action: "CREATE",
           ResourceRecordSet:
             Name: record.hostname,
-            Type: "A",
+            Type: record.type,
             TTL: 60,
             ResourceRecords: [
               {
@@ -288,7 +288,7 @@ set_dns_record = async (record) ->
       zone_id: record.zone_id
       current_ip_address: current_ip_address
       current_type: current_type
-      type: "A"
+      type: record.type
       ip_address: record.ip_address
 
     return yield update_dns_record params
@@ -297,7 +297,7 @@ set_dns_record = async (record) ->
     params =
       hostname: record.hostname
       zone_id: record.zone_id
-      type: "A"
+      type: record.type
       ip_address: record.ip_address
 
     return yield add_dns_record params
