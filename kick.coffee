@@ -108,15 +108,21 @@ build_record = async (data, method) ->
     # Figure out the host zone's ID from the query's hostname field.
     hosted_zone = get_hosted_zone data.hostname
     console.log hosted_zone
+
     if hosted_zone == config.public_hosted_zone
+      # Public Record
       zone_id = config.public_dns_id
+      type: "A"
     else if hosted_zone == config.private_hosted_zone
+      # Private Record
       zone_id = config.private_dns_id
+      type: "SRV"
     else
       throw "Unknown hosted zone.  Cannot modify."
 
     return {
       zone_id: zone_id
+      type: type
       hostname: data.hostname
       ip_address: data.ip_address
     }
