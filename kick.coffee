@@ -119,9 +119,9 @@ build_record = async (data, method) ->
         ip_address: data.ip_address
       }
     else if hosted_zone == config.private_hosted_zone
+      console.log "Going Private"
       # Private Record
       return {
-        console.log "Going Private"
         zone_id: config.private_dns_id
         type: "SRV"
         hostname: data.hostname
