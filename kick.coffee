@@ -166,14 +166,14 @@ get_current_record = async (hostname, zone_id) ->
 
     # We need to conduct a little parsing to extract the IP address of the record set.
     record = where data.ResourceRecordSets, {Name:hostname}
-
+    console.log "Results are in #{record.length}"
     if record.length == 0
       return null
-
-    return {
-      current_ip_address: record[0].ResourceRecords[0].Value
-      current_type: record[0].Type
-    }
+    else
+      return {
+        current_ip_address: record[0].ResourceRecords[0].Value
+        current_type: record[0].Type
+      }
 
   catch error
     console.log error
