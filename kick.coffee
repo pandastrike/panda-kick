@@ -110,6 +110,7 @@ build_record = async (data, method) ->
     console.log hosted_zone
 
     if hosted_zone == config.public_hosted_zone
+      console.log "Going Public"
       # Public Record
       return {
         zone_id: config.public_dns_id
@@ -120,6 +121,7 @@ build_record = async (data, method) ->
     else if hosted_zone == config.private_hosted_zone
       # Private Record
       return {
+        console.log "Going Private"
         zone_id: config.private_dns_id
         type: "SRV"
         hostname: data.hostname
@@ -201,12 +203,15 @@ add_dns_record = async (record) ->
         }
       ]
 
-  data = yield change_record params
-  return {
-    result: data
-    change_id: data.ChangeInfo.Id
-  }
+  try
+    data = yield change_record params
+    return {
+      result: data
+      change_id: data.ChangeInfo.Id
+    }
 
+  catch error
+    console.log error
 
 # Delete a record from the HostedZone
 delete_dns_record = async (record) ->
@@ -232,12 +237,15 @@ delete_dns_record = async (record) ->
         }
       ]
 
-  data = yield change_record params
-  return {
-    result: data
-    change_id: data.ChangeInfo.Id
-  }
+  try
+    data = yield change_record params
+    return {
+      result: data
+      change_id: data.ChangeInfo.Id
+    }
 
+  catch error
+    console.log error
 
 # Update an existing record in the HostedZone
 update_dns_record = async (record) ->
@@ -275,11 +283,16 @@ update_dns_record = async (record) ->
         }
       ]
 
-  data = yield change_record params
-  return {
-    result: data
-    change_id: data.ChangeInfo.Id
-  }
+  try
+    data = yield change_record params
+    console.log "Updating Record", data
+    return {
+      result: data
+      change_id: data.ChangeInfo.Id
+    }
+
+  catch error
+    console.log error
 
 # To give the server more flexibility, sending a POST request activates this function,
 # which will detect whether the DNS record exists or not before making changes.
@@ -289,7 +302,10 @@ set_dns_record = async (record) ->
   # We need to determine if the requested hostname is currently assigned in a DNS record.
   {current_ip_address, current_type} = yield get_current_record( record.hostname, record.zone_id)
 
+  console.log "Current IP Address is : #{current_ip_address}"
+
   if current_ip_address?
+    console.log "Updating Record"
     # There is already a record.  Change it.
     params =
       hostname: record.hostname
@@ -301,6 +317,7 @@ set_dns_record = async (record) ->
 
     return yield update_dns_record params
   else
+    console.log "Adding Record"
     # No existing record is associated with this hostname.  Create one.
     params =
       hostname: record.hostname
