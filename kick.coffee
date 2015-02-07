@@ -352,6 +352,7 @@ kick = async (request, response)->
 
     switch request.method
       when "POST"
+        console.log "Using POST method."
         {change_id} = yield set_dns_record record
         console.log "Change is Scheduled: change_id"
         response.writeHead 201
