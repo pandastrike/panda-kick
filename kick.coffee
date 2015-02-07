@@ -168,6 +168,7 @@ get_current_record = async (hostname, zone_id) ->
     record = where data.ResourceRecordSets, {Name:hostname}
     console.log "Results are in #{record.length}"
     if record.length == 0
+      console.log "returning null"
       return null
     else
       return {
