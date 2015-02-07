@@ -348,10 +348,12 @@ get_record_status = async (change_id, creds) ->
 kick = async (request, response)->
   try
     record = yield build_record parse yield get_data request
+    console.log record
 
     switch request.method
       when "POST"
         {change_id} = yield set_dns_record record
+        console.log "Change is Scheduled: change_id"
         response.writeHead 201
         response.write "Record Added.  Waiting for DNS update."
 
