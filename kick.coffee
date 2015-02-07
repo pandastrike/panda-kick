@@ -168,9 +168,7 @@ get_current_record = async (hostname, zone_id) ->
     record = where data.ResourceRecordSets, {Name:hostname}
 
     if record.length == 0
-      record = where data.ResourceRecordSets, {Name: "#{hostname}."}
-      if record.length == 0
-        return null
+      return null
 
     return {
       current_ip_address: record[0].ResourceRecords[0].Value
