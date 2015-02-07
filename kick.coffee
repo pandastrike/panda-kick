@@ -168,8 +168,10 @@ get_current_record = async (hostname, zone_id) ->
     record = where data.ResourceRecordSets, {Name:hostname}
     console.log "Results are in #{record.length}"
     if record.length == 0
-      console.log "returning null"
-      return null
+      return {
+        current_ip_address: null
+        current_type: null
+      }
     else
       return {
         current_ip_address: record[0].ResourceRecords[0].Value
