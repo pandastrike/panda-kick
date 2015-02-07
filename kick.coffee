@@ -157,6 +157,7 @@ configure_aws = async ->
 # Get the DNS record currently associated with the hostname.
 get_current_record = async (hostname, zone_id) ->
   try
+    console.log "Looking for current_record: #{hostname} #{zone_id}"
     AWS.config = yield configure_aws()
     r53 = new AWS.Route53()
     list_records = lift_object r53, r53.listResourceRecordSets
