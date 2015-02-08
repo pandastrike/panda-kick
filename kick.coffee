@@ -111,13 +111,11 @@ build_record = async (data, method) ->
   try
     # Read credential information stored in kick.cson
     config = parse( yield read_file( resolve( __dirname, "kick.cson")))
-    console.log data, config
+
     # Figure out the host zone's ID from the query's hostname field.
     hosted_zone = get_hosted_zone data.hostname
-    console.log hosted_zone
 
     if hosted_zone == config.public_hosted_zone
-      console.log "Going Public"
       # Public Record
       return {
         zone_id: config.public_dns_id
@@ -126,7 +124,6 @@ build_record = async (data, method) ->
         ip_address: data.ip_address
       }
     else if hosted_zone == config.private_hosted_zone
-      console.log "Going Private"
       # Private Record
       return {
         zone_id: config.private_dns_id
@@ -164,7 +161,6 @@ configure_aws = async ->
 # Get the DNS record currently associated with the hostname.
 get_current_record = async (hostname, zone_id) ->
   try
-    console.log "Looking for current_record: #{hostname} #{zone_id}"
     AWS.config = yield configure_aws()
     r53 = new AWS.Route53()
     list_records = lift_object r53, r53.listResourceRecordSets
@@ -173,7 +169,6 @@ get_current_record = async (hostname, zone_id) ->
 
     # We need to conduct a little parsing to extract the IP address of the record set.
     record = where data.ResourceRecordSets, {Name:hostname}
-    console.log "Results are in #{record.length}"
     if record.length == 0
       return {
         current_ip_address: null
@@ -294,7 +289,6 @@ update_dns_record = async (record) ->
 
   try
     data = yield change_record params
-    console.log "Updating Record", data
     return {
       result: data
       change_id: data.ChangeInfo.Id
@@ -311,10 +305,7 @@ set_dns_record = async (record) ->
   # We need to determine if the requested hostname is currently assigned in a DNS record.
   {current_ip_address, current_type} = yield get_current_record( record.hostname, record.zone_id)
 
-  console.log "Current IP Address is : #{current_ip_address}"
-
   if current_ip_address?
-    console.log "Updating Record"
     # There is already a record.  Change it.
     params =
       hostname: record.hostname
@@ -326,7 +317,6 @@ set_dns_record = async (record) ->
 
     return yield update_dns_record params
   else
-    console.log "Adding Record"
     # No existing record is associated with this hostname.  Create one.
     params =
       hostname: record.hostname
@@ -357,26 +347,20 @@ get_record_status = async (change_id, creds) ->
 kick = async (request, response)->
   try
     record = yield build_record parse yield get_data request
-    console.log record
+    console.log "Request recieved.  The following is used with #{request.method} -", record
 
     switch request.method
       when "POST"
-        console.log "Using POST method."
         {change_id} = yield set_dns_record record
-        console.log "Change is Scheduled: #{change_id}"
-        response.writeHead 201
-        response.write "Record Added.  Waiting for DNS update."
-
         yield poll_until_true get_record_status, change_id, 5000
+        response.writeHead 201
         response.write "Done.  Record Synchronized."
         response.end()
 
       when "DELETE"
         {change_id} = yield delete_dns_record record
-        response.writeHead 201
-        response.write "Record Deleted.  Waiting for DNS update."
-
         yield poll_until_true get_record_status, change_id, 5000
+        response.writeHead 201
         response.write "Done.  Record Synchronized."
         response.end()
 
