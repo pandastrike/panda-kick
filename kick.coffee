@@ -170,7 +170,7 @@ get_current_record = async (hostname, zone_id) ->
     list_records = lift_object r53, r53.listResourceRecordSets
 
     data = yield list_records {HostedZoneId: zone_id}
-    console.log data.ResourceRecordSets
+
     # We need to conduct a little parsing to extract the IP address of the record set.
     record = where data.ResourceRecordSets, {Name:hostname}
     console.log "Results are in #{record.length}"
