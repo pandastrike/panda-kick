@@ -30,6 +30,13 @@ AWS = require 'aws-sdk'
 #=========================
 # Helpers
 #=========================
+# Enforces "fully qualified" form of hostnames.  Idompotent.
+fully_qualified = (name) ->
+  if name[name.length - 1] == "."
+    return name
+  else
+    return name + "."
+
 # Allow "when" to lift AWS module functions, which are non-standard.
 lift_object = (object, method) ->
   node_lift method.bind object
@@ -115,7 +122,7 @@ build_record = async (data, method) ->
       return {
         zone_id: config.public_dns_id
         type: "A"
-        hostname: data.hostname
+        hostname: fully_qualified data.hostname
         ip_address: data.ip_address
       }
     else if hosted_zone == config.private_hosted_zone
@@ -124,7 +131,7 @@ build_record = async (data, method) ->
       return {
         zone_id: config.private_dns_id
         type: "SRV"
-        hostname: data.hostname
+        hostname: fully_qualified data.hostname
         ip_address: "1 1 #{data.port} #{data.ip_address}"
       }
     else
