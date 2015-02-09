@@ -381,6 +381,7 @@ kick = async (request, response)->
         response.end()
 
   catch error
+    console.log error
     response.writeHead 400
     response.write "Apologies. Unable to set DNS record."
     response.end()
