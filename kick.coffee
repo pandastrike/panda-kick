@@ -117,20 +117,30 @@ build_record = async (data, method) ->
 
     if hosted_zone == config.public_hosted_zone
       # Public Record
-      return {
+      record =
         zone_id: config.public_dns_id
-        type: "A"
+        type: data.type? || "A"
         hostname: fully_qualified data.hostname
-        ip_address: data.ip_address
-      }
+
+      if record.type == "A"
+        record.ip_address = data.ip_address
+      else
+        record.ip_address = "1 1 #{data.port} #{data.ip_address}"
+
+      return record
     else if hosted_zone == config.private_hosted_zone
       # Private Record
-      return {
+      record =
         zone_id: config.private_dns_id
-        type: "SRV"
+        type: data.type? || "SRV"
         hostname: fully_qualified data.hostname
-        ip_address: "1 1 #{data.port} #{data.ip_address}"
-      }
+
+      if record.type == "A"
+        record.ip_address = data.ip_address
+      else
+        record.ip_address = "1 1 #{data.port} #{data.ip_address}"
+        
+      return record
     else
       throw "Unknown hosted zone.  Cannot modify."
 
