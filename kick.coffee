@@ -111,7 +111,7 @@ build_record = async (data, method) ->
   try
     # Read credential information stored in kick.cson
     config = parse( yield read_file( resolve( __dirname, "kick.cson")))
-
+    console.log data, config
     # Figure out the host zone's ID from the query's hostname field.
     hosted_zone = get_hosted_zone data.hostname
 
@@ -134,14 +134,8 @@ build_record = async (data, method) ->
     else
       throw "Unknown hosted zone.  Cannot modify."
 
-    return {
-      zone_id: zone_id
-      type: type
-      hostname: data.hostname
-      ip_address: data.ip_address
-    }
-
   catch error
+    console.log error
     return error
 
 
