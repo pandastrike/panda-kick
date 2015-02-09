@@ -121,7 +121,7 @@ build_record = async (data, method) ->
         zone_id: config.public_dns_id
         hostname: fully_qualified data.hostname
 
-      if data.type?
+      if data.type? && data.type != ""
         record.type = data.type
       else
         record.type = "A"
@@ -132,13 +132,15 @@ build_record = async (data, method) ->
         record.ip_address = "1 1 #{data.port} #{data.ip_address}"
 
       return record
+
+
     else if hosted_zone == config.private_hosted_zone
       # Private Record
       record =
         zone_id: config.private_dns_id
         hostname: fully_qualified data.hostname
 
-      if data.type?
+      if data.type? && data.type != ""
         record.type = data.type
       else
         record.type = "SRV"
@@ -149,6 +151,8 @@ build_record = async (data, method) ->
         record.ip_address = "1 1 #{data.port} #{data.ip_address}"
 
       return record
+
+
     else
       throw "Unknown hosted zone.  Cannot modify."
 
