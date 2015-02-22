@@ -1,6 +1,8 @@
 # panda-kick
 Sidekick Server For Huxley Clusters - Cluster Agent with AWS Credentials
 
+> **Warning:** This is an experimental project under heavy development.  It's awesome and becoming even more so, but it is a work in progress.
+
 ## Definition
 This repository defines the kick API server. (short for sidekick).  It's a primitive, meta API server that allows the cluster to alter itself independently of a remote actor.  The kick server is Dockerized and available from pandastrike/pc_kick.
 
@@ -12,7 +14,7 @@ In the current iteration, kick server is very simple and only makes changes to t
 
 ### Structure of a DNS change request:
 ```bash
-curl -XPOST kick.<private_domain>:2000 -d ' 
+curl -XPOST kick.<private_domain>:2000 -d '
 "hostname": "<hostname>",
 "ip_address": "<ip_address>",   #  Usually ${COREOS_PRIVATE_IPV4} in the .service file
 "port": "<port>",  
