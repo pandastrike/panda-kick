@@ -390,7 +390,7 @@ kick = async (request, response)->
 #=========================
 # Launch Server
 #=========================
-http.createServer(kick).listen(80)
-console.log '===================================='
-console.log '  The server is online and ready.'
-console.log '===================================='
+http.createServer(kick).listen 8080, ->
+  console.log '===================================='
+  console.log '  The server is online and ready.'
+  console.log '===================================='
