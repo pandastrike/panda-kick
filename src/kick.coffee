@@ -110,7 +110,7 @@ build_record = async (data, method) ->
 
   try
     # Read credential information stored in kick.cson
-    config = parse( yield read_file( resolve( __dirname, "kick.cson")))
+    config = parse( yield read_file( resolve( __dirname, "config/kick.cson")))
     console.log data, config
     # Figure out the host zone's ID from the query's hostname field.
     hosted_zone = get_hosted_zone data.hostname

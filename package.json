@@ -1,9 +1,10 @@
 {
   "name": "panda-cluster-kick",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Kick-Server For Huxley Clusters - Grants Self-Sufficient Autonomy to Cluster Deployments",
-  "main": "kick.coffee",
+  "main": "src/kick.coffee",
   "scripts": {
+    "start": "coffee --nodejs --harmony src/kick.coffee",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
