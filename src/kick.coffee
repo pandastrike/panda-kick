@@ -360,7 +360,7 @@ get_record_status = async (change_id, creds) ->
 #=========================
 # Server Definition
 #=========================
-kick = async (request, response)->
+module.exports = async (request, response)->
   try
     record = yield build_record parse yield get_data request
     console.log "Request recieved.  The following is used with #{request.method} -", record
@@ -386,11 +386,3 @@ kick = async (request, response)->
     response.write "Apologies. Unable to set DNS record."
     response.end()
 
-
-#=========================
-# Launch Server
-#=========================
-http.createServer(kick).listen 8080, ->
-  console.log '===================================='
-  console.log '  The server is online and ready.'
-  console.log '===================================='
