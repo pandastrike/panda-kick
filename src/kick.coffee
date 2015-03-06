@@ -10,9 +10,9 @@
 # Core Libraries
 http = require 'http'
 {resolve} = require "path"
-{readFile} = require "fs"
 
 # PandaStrike Libraries
+{read, sleep} = require 'fairmont'
 {parse} = require 'c50n'
 
 # Awesome functional toolkit.
@@ -41,13 +41,6 @@ fully_qualified = (name) ->
 lift_object = (object, method) ->
   node_lift method.bind object
 
-# This is a wrap of setTimeout with ES6 technology that forces a non-blocking
-# pause in execution for the specified duration (in ms).
-pause = (duration) ->
-  promise (resolve, reject) ->
-    callback = -> resolve()
-    setTimeout callback, duration
-
 # Repeatedly call "func" until it returns true.  This repeats at fixed intervals.
 poll_until_true = async (func, options, creds, duration, message) ->
   while true
@@ -55,17 +48,8 @@ poll_until_true = async (func, options, creds, duration, message) ->
     if status
       return status         # Complete.
     else
-      yield pause duration  # Not complete. Keep going.
+      yield sleep duration  # Not complete. Keep going.
 
-
-# This wraps Node's irregular, asynchronous readFile in a promise.
-read_file = (path) ->
-  promise (resolve, reject) ->
-    readFile path, "utf-8", (error, data) ->
-      if data?
-        resolve data
-      else
-        resolve error
 
 # Promise wrapper around request events that read "data" from the request's body.
 get_data = (request) ->
@@ -110,7 +94,7 @@ build_record = async (data, method) ->
 
   try
     # Read credential information stored in kick.cson
-    config = parse( yield read_file( resolve( __dirname, "../config/kick.cson")))
+    config = parse yield read (resolve __dirname, "../config/kick.cson")
     console.log data, config
     # Figure out the host zone's ID from the query's hostname field.
     hosted_zone = get_hosted_zone data.hostname
@@ -165,7 +149,7 @@ build_record = async (data, method) ->
 # Returns the parameters to AWS.config so the server can access the user's account.
 configure_aws = async ->
 
-  config = parse( yield read_file( resolve( __dirname, "../config/kick.cson")))
+  config = parse yield read (resolve __dirname, "../config/kick.cson")
 
   return {
     accessKeyId: config.id
