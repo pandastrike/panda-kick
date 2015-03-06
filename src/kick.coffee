@@ -10,6 +10,7 @@
 # Core Libraries
 http = require 'http'
 {resolve} = require "path"
+parse_url = (require "url").parse
 
 # PandaStrike Libraries
 {read, sleep} = require 'fairmont'
@@ -63,22 +64,15 @@ get_data = (request) ->
 get_hosted_zone = (url) ->
   try
     # Find and remove protocol (http, ftp, etc.), if present, and get domain
-
-    if url.indexOf("://") != -1
-      domain = url.split('/')[2]
-    else
-      domain = url.split('/')[0]
-
-    # Find and remove port number
-    domain = domain.split(':')[0]
+    {hostname} = parse_url url
 
     # Now grab the root domain, the top-level-domain, plus what's to the left of it.
     # Be careful of tld's that are followed by a period.
-    foo = domain.split "."
-    if foo[foo.length - 1] == ""
-      domain = "#{foo[foo.length - 3]}.#{foo[foo.length - 2]}"
+    parts = hostname.split "."
+    if parts[parts.length - 1] == ""
+      domain = "#{parts[parts.length - 3]}.#{parts[parts.length - 2]}"
     else
-      domain = "#{foo[foo.length - 2]}.#{foo[foo.length - 1]}"
+      domain = "#{parts[parts.length - 2]}.#{parts[parts.length - 1]}"
 
     # And finally, make the sure the root_domain ends with a "."
     domain = domain + "."
