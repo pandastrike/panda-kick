@@ -10,26 +10,27 @@
 # Core Libraries
 http = require 'http'
 {resolve} = require "path"
+{readFileSync: read} = require "fs"
 parse_url = (require "url").parse
 
 # PandaStrike Libraries
-{read, sleep} = require 'fairmont'
+{sleep} = require 'fairmont'
 {parse} = require 'c50n'
-
-# Awesome functional toolkit.
-{where} = require 'underscore'
 
 # When Library
 {promise, lift} = require "when"
 {liftAll} = require "when/node"
 async = (require "when/generator").lift
 
+config = parse read (resolve __dirname, "../config/kick.cson")
+
 # Amazon Web Services
-api = require "./route53"
+api = (require "./route53")(config.AWS)
 
 #=========================
 # Helpers
 #=========================
+
 # Enforces "fully qualified" form of hostnames.  Idompotent.
 fully_qualified = (name) ->
   if name[name.length - 1] == "."
@@ -57,81 +58,68 @@ get_data = (request) ->
 # Given a URL of many possible formats, return the root domain.
 # https://awesome.example.com/test/42#?=What+is+the+answer  =>  example.com.
 get_hosted_zone = (url) ->
-  try
-    # Find and remove protocol (http, ftp, etc.), if present, and get domain
-    {hostname} = parse_url url
+  # Find and remove protocol (http, ftp, etc.), if present, and get domain
+  {hostname} = parse_url url
 
-    # Now grab the root domain, the top-level-domain, plus what's to the left of it.
-    # Be careful of tld's that are followed by a period.
-    parts = hostname.split "."
-    if parts[parts.length - 1] == ""
-      domain = "#{parts[parts.length - 3]}.#{parts[parts.length - 2]}"
-    else
-      domain = "#{parts[parts.length - 2]}.#{parts[parts.length - 1]}"
+  # Now grab the root domain, the top-level-domain, plus what's to the left of it.
+  # Be careful of tld's that are followed by a period.
+  parts = hostname.split "."
+  if parts[parts.length - 1] == ""
+    domain = "#{parts[parts.length - 3]}.#{parts[parts.length - 2]}"
+  else
+    domain = "#{parts[parts.length - 2]}.#{parts[parts.length - 1]}"
 
-    # And finally, make the sure the root_domain ends with a "."
-    domain = domain + "."
-    return domain
-
-  catch error
-    return error
+  # And finally, make the sure the root_domain ends with a "."
+  domain = domain + "."
+  return domain
 
 # We use explicit fields from the HTTP requests for clairity, but we don't
 # want to make the end user specify redundant information.  We fill in the gaps here
 # to build a complete DNS record.
-build_record = async (data, method) ->
+build_record = (data, method) ->
+  # Read credential information stored in kick.cson
+  console.log data, config
+  # Figure out the host zone's ID from the query's hostname field.
+  hosted_zone = get_hosted_zone data.hostname
 
-  try
-    # Read credential information stored in kick.cson
-    config = parse yield read (resolve __dirname, "../config/kick.cson")
-    console.log data, config
-    # Figure out the host zone's ID from the query's hostname field.
-    hosted_zone = get_hosted_zone data.hostname
+  if hosted_zone == config.public_hosted_zone
+    # Public Record
+    record =
+      zone_id: config.public_dns_id
+      hostname: fully_qualified data.hostname
 
-    if hosted_zone == config.public_hosted_zone
-      # Public Record
-      record =
-        zone_id: config.public_dns_id
-        hostname: fully_qualified data.hostname
-
-      if data.type? && data.type != ""
-        record.type = data.type
-      else
-        record.type = "A"
-
-      if record.type == "A"
-        record.ip_address = data.ip_address
-      else
-        record.ip_address = "1 1 #{data.port} #{data.ip_address}"
-
-      return record
-
-
-    else if hosted_zone == config.private_hosted_zone
-      # Private Record
-      record =
-        zone_id: config.private_dns_id
-        hostname: fully_qualified data.hostname
-
-      if data.type? && data.type != ""
-        record.type = data.type
-      else
-        record.type = "SRV"
-
-      if record.type == "A"
-        record.ip_address = data.ip_address
-      else
-        record.ip_address = "1 1 #{data.port} #{data.ip_address}"
-
-      return record
-
-
+    if data.type? && data.type != ""
+      record.type = data.type
     else
-      throw "Unknown hosted zone.  Cannot modify."
+      record.type = "A"
 
-  catch error
-    console.log error
-    return error
+    if record.type == "A"
+      record.ip_address = data.ip_address
+    else
+      record.ip_address = "1 1 #{data.port} #{data.ip_address}"
+
+    return record
+
+  else if hosted_zone == config.private_hosted_zone
+    # Private Record
+    record =
+      zone_id: config.private_dns_id
+      hostname: fully_qualified data.hostname
+
+    if data.type? && data.type != ""
+      record.type = data.type
+    else
+      record.type = "SRV"
+
+    if record.type == "A"
+      record.ip_address = data.ip_address
+    else
+      record.ip_address = "1 1 #{data.port} #{data.ip_address}"
+
+    return record
+
+  else
+    throw "Unknown hosted zone.  Cannot modify."
 
 
 # To give the server more flexibility, sending a POST request activates this function,
@@ -169,7 +157,7 @@ set_dns_record = async (record) ->
 #=========================
 module.exports = async (request, response)->
   try
-    record = yield build_record parse yield get_data request
+    record = build_record parse yield get_data request
     console.log "Request recieved.  The following is used with #{request.method} -", record
 
     switch request.method
@@ -188,7 +176,7 @@ module.exports = async (request, response)->
         response.end()
 
   catch error
-    console.log error
+    console.log error, error.stack
     response.writeHead 400
     response.write "Apologies. Unable to set DNS record."
     response.end()

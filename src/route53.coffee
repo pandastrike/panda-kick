@@ -1,33 +1,53 @@
-AWS = require 'aws-sdk'
-{read} = require "fairmont"
-{parse} = require 'c50n'
-{resolve} = require 'path'
-node_lift = (require "when/node").lift
+AWS = require "aws-sdk"
+{extend} = require "fairmont"
+{where} = require "underscore"
+{lift} = require "when/node"
 async = (require "when/generator").lift
 
 # Allow "when" to lift AWS module functions, which are non-standard.
 lift_object = (object, method) ->
-  node_lift method.bind object
+  lift object[method].bind object
 
-# Returns the parameters to AWS.config so the server can access the user's account.
-configure_aws = async ->
-  config = parse yield read (resolve __dirname, "../config/kick.cson")
+# Creates a Route53 ChangeBatch given a Zone ID and an array of changes
+make_batch = ({zone_id}, changes) ->
+  HostedZoneId: zone_id
+  ChangeBatch:
+    Changes: changes
 
-  return {
-    accessKeyId: config.id
-    secretAccessKey: config.key
-    region: config.region
-    sslEnabled: true
+# Creates a Route53 Change object, given an action and a record
+# To be used in a ChangeBatch
+make_record = (action, {hostname, type, ip_address}) ->
+  {
+    Action: action.toUpperCase(),
+    ResourceRecordSet:
+      Name: hostname,
+      Type: type,
+      TTL: 60,
+      ResourceRecords: [
+        {
+          Value: ip_address
+        }
+      ]
   }
 
-module.exports =
+# Quick helper functions for creating specific Change records
+create_record = (record) -> make_record("create", record)
+delete_record = (record) -> make_record("delete", record)
+
+module.exports = (config) ->
+
+  # Update AWS config if settings where passed in
+  extend AWS.config, config
+  r53 = new AWS.Route53
+
+  # create promisified versions of AWS API calls
+  get_change    = lift_object r53, 'getChange'
+  list_records  = lift_object r53, 'listResourceRecordSets'
+  change_record = lift_object r53, 'changeResourceRecordSets'
+
   # This function checks the specified DNS record to see if its "INSYC", done updating.
   # It returns either true or false, and throws an exception if an AWS error is reported.
-  get_record_status: async (change_id, creds) ->
-    AWS.config = yield configure_aws()
-    r53 = new AWS.Route53()
-    get_change = lift_object r53, r53.getChange
-
+  get_record_status: async (change_id) ->
     data = yield get_change {Id: change_id}
 
     if data.ChangeInfo.Status == "INSYNC"
@@ -37,140 +57,52 @@ module.exports =
 
   # Get the DNS record currently associated with the hostname.
   get_current_record: async (hostname, zone_id) ->
-    try
-      AWS.config = yield configure_aws()
-      r53 = new AWS.Route53()
-      list_records = lift_object r53, r53.listResourceRecordSets
+    data = yield list_records {HostedZoneId: zone_id}
 
-      data = yield list_records {HostedZoneId: zone_id}
-
-      # We need to conduct a little parsing to extract the IP address of the record set.
-      record = where data.ResourceRecordSets, {Name:hostname}
-      if record.length == 0
-        return {
-          current_ip_address: null
-          current_type: null
-        }
-      else
-        return {
-          current_ip_address: record[0].ResourceRecords[0].Value
-          current_type: record[0].Type
-        }
-
-    catch error
-      console.log error
+    # We need to conduct a little parsing to extract the IP address of the record set.
+    record = where data.ResourceRecordSets, {Name:hostname}
+    if record.length == 0
+      return {
+        current_ip_address: null
+        current_type: null
+      }
+    else
+      return {
+        current_ip_address: record[0].ResourceRecords[0].Value
+        current_type: record[0].Type
+      }
 
 
   # Add a record to the HostedZone
   add_dns_record: async (record) ->
-    AWS.config = yield configure_aws()
-    r53 = new AWS.Route53()
-    change_record = lift_object r53, r53.changeResourceRecordSets
+    params = make_batch record, [ create_record(record) ]
 
-    params =
-      HostedZoneId: record.zone_id
-      ChangeBatch:
-        Changes: [
-          {
-            Action: "CREATE",
-            ResourceRecordSet:
-              Name: record.hostname,
-              Type: record.type,
-              TTL: 60,
-              ResourceRecords: [
-                {
-                  Value: record.ip_address
-                }
-              ]
-          }
-        ]
+    data = yield change_record params
 
-    try
-      data = yield change_record params
-      return {
-        result: data
-        change_id: data.ChangeInfo.Id
-      }
-
-    catch error
-      console.log error
+    result: data
+    change_id: data.ChangeInfo.Id
 
   # Update an existing record in the HostedZone
   update_dns_record: async (record) ->
-    AWS.config = yield configure_aws()
-    r53 = new AWS.Route53()
-    change_record = lift_object r53, r53.changeResourceRecordSets
+    params = make_batch record, [
+      delete_record
+        hostname: record.hostname
+        type: record.current_type
+        ip_address: record.current_ip_address
+      create_record(record)
+    ]
 
-    params =
-      HostedZoneId: record.zone_id
-      ChangeBatch:
-        Changes: [
-          {
-            Action: "DELETE",
-            ResourceRecordSet:
-              Name: record.hostname,
-              Type: record.current_type,
-              TTL: 60,
-              ResourceRecords: [
-                {
-                  Value: record.current_ip_address
-                }
-              ]
-          }
-          {
-            Action: "CREATE",
-            ResourceRecordSet:
-              Name: record.hostname,
-              Type: record.type,
-              TTL: 60,
-              ResourceRecords: [
-                {
-                  Value: record.ip_address
-                }
-              ]
-          }
-        ]
+    data = yield change_record params
 
-    try
-      data = yield change_record params
-      return {
-        result: data
-        change_id: data.ChangeInfo.Id
-      }
-
-    catch error
-      console.log error
+    result: data
+    change_id: data.ChangeInfo.Id
 
   # Delete a record from the HostedZone
   delete_dns_record: async (record) ->
-    AWS.config = yield configure_aws()
-    r53 = new AWS.Route53()
-    change_record = lift_object r53, r53.changeResourceRecordSets
+    params = make_batch record, [ delete_record(record) ]
 
-    params =
-      HostedZoneId: record.zone_id
-      ChangeBatch:
-        Changes: [
-          {
-            Action: "DELETE",
-            ResourceRecordSet:
-              Name: record.hostname,
-              Type: record.type,
-              TTL: 60,
-              ResourceRecords: [
-                {
-                  Value: record.ip_address
-                }
-              ]
-          }
-        ]
+    data = yield change_record params
 
-    try
-      data = yield change_record params
-      return {
-        result: data
-        change_id: data.ChangeInfo.Id
-      }
+    result: data
+    change_id: data.ChangeInfo.Id
 
-    catch error
-      console.log error
