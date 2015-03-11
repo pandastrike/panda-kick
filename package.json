@@ -5,7 +5,7 @@
   "main": "src/server.coffee",
   "scripts": {
     "start": "coffee --nodejs --harmony src/server.coffee",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test":  "coffee --nodejs --harmony test/index.coffee"
   },
   "repository": {
     "type": "git",
@@ -30,5 +30,9 @@
     "fairmont": "^1.0.0-alpha-04",
     "underscore": "^1.7.0",
     "when": "^3.6.4"
+  },
+  "devDependencies": {
+    "amen": "^1.0.0-alpha-06",
+    "supertest": "^0.15.0"
   }
 }
