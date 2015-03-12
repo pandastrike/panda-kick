@@ -12,7 +12,6 @@ assert = require "assert"
 TestRecord =
   hostname: "test.sparkles.cluster"
   ip_address: "10.1.2.3"
-  port: 1234
   type: "A"
 
 describe "Kick Server", (context) ->
@@ -27,14 +26,14 @@ describe "Kick Server", (context) ->
 
     context.test "Get DNS record", (context) ->
       {data} = yield record.get()
-      console.log yield data
-      # TODO assert correctness
+      new_record = yield data
+      for key of TestRecord
+        assert.equal new_record[key], TestRecord[key]
 
       context.test "Poll for changes", ->
-        console.log "Polling for changes. This may take a while."
         loop
+          console.log "Polling for changes. This may take a while."
           {data} = yield record.get()
-          console.log yield data
           if (yield data).ChangeInfo.Status == "PENDING"
             yield sleep 5000
           else break

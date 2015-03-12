@@ -9,7 +9,7 @@ builder.define "record", template: "/record/:hostname"
 .put()
 .delete()
 .schema
-  required: ["hostname", "ip_address", "port", "type"]
+  required: ["hostname", "ip_address", "type"]
   properties:
     hostname: type: "string"
     ip_address: type: "string"
