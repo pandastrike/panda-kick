@@ -27,16 +27,8 @@ get_hosted_zone = (url) ->
   return domain
 
 module.exports =
-  load_config: compose parse, read
-
-  # Repeatedly call "func" until it returns true.  This repeats at fixed intervals.
-  poll_until_true: async (func, options, creds, duration, message) ->
-    while true
-      status = yield func options, creds
-      if status
-        return status         # Complete.
-      else
-        yield sleep duration  # Not complete. Keep going.
+  # Reads and parses a CSON (or JSON) file. Returns a promise.
+  load: compose parse, read
 
   # We use explicit fields from the HTTP requests for clairity, but we don't
   # want to make the end user specify redundant information.  We fill in the gaps here

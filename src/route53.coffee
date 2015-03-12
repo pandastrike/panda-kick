@@ -47,13 +47,7 @@ module.exports = (config) ->
 
   # This function checks the specified DNS record to see if its "INSYC", done updating.
   # It returns either true or false, and throws an exception if an AWS error is reported.
-  get_record_status: async (change_id) ->
-    data = yield get_change {Id: change_id}
-
-    if data.ChangeInfo.Status == "INSYNC"
-      return data
-    else
-      return false
+  get_record_status: (change_id) -> get_change {Id: change_id}
 
   # Get the DNS record currently associated with the hostname.
   get_current_record: async (hostname, zone_id) ->
@@ -112,7 +106,7 @@ module.exports = (config) ->
   # of Amazon's DNS records.
   set_dns_record: async (record) ->
     # We need to determine if the requested hostname is currently assigned in a DNS record.
-    {current_ip_address, current_type} = yield api.get_current_record( record.hostname, record.zone_id)
+    {current_ip_address, current_type} = yield @get_current_record(record.hostname, record.zone_id)
 
     if current_ip_address?
       # There is already a record.  Change it.
@@ -124,7 +118,7 @@ module.exports = (config) ->
         type: record.type
         ip_address: record.ip_address
 
-      return yield api.update_dns_record params
+      return yield @update_dns_record params
     else
       # No existing record is associated with this hostname.  Create one.
       params =
@@ -133,5 +127,5 @@ module.exports = (config) ->
         type: record.type
         ip_address: record.ip_address
 
-      return yield api.add_dns_record params
+      return yield @add_dns_record params
 
