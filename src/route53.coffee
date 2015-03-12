@@ -4,9 +4,17 @@ AWS = require "aws-sdk"
 {lift} = require "when/node"
 async = (require "when/generator").lift
 
+# ===================================
+# Helpers
+# ===================================
+
 # Allow "when" to lift AWS module functions, which are non-standard.
 lift_object = (object, method) ->
   lift object[method].bind object
+
+# Enforces "fully qualified" form of hostnames.  Idompotent.
+fully_qualified = (name) ->
+  if name[name.length - 1] == "." then name else name + "."
 
 # Creates a Route53 ChangeBatch given a Zone ID and an array of changes
 make_batch = ({zone_id}, changes) ->
@@ -17,18 +25,12 @@ make_batch = ({zone_id}, changes) ->
 # Creates a Route53 Change object, given an action and a record
 # To be used in a ChangeBatch
 make_record = (action, {hostname, type, ip_address}) ->
-  {
-    Action: action.toUpperCase(),
-    ResourceRecordSet:
-      Name: hostname,
-      Type: type,
-      TTL: 60,
-      ResourceRecords: [
-        {
-          Value: ip_address
-        }
-      ]
-  }
+  Action: action.toUpperCase()
+  ResourceRecordSet:
+    Name: fully_qualified hostname
+    Type: type
+    TTL: 60
+    ResourceRecords: [ Value: ip_address ]
 
 # Quick helper functions for creating specific Change records
 create_record = (record) -> make_record("create", record)
@@ -54,7 +56,7 @@ module.exports = (config) ->
     data = yield list_records {HostedZoneId: zone_id}
 
     # We need to conduct a little parsing to extract the IP address of the record set.
-    record = where data.ResourceRecordSets, {Name:hostname}
+    record = where data.ResourceRecordSets, {Name: fully_qualified hostname}
     if record.length == 0
       return {
         current_ip_address: null

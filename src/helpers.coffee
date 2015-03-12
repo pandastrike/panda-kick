@@ -34,12 +34,6 @@ module.exports =
   # want to make the end user specify redundant information.  We fill in the gaps here
   # to build a complete DNS record.
   build_record: (data, config) ->
-    # Enforces "fully qualified" form of hostnames.  Idompotent.
-    fully_qualified = (name) ->
-      if name[name.length - 1] == "."
-        return name
-      else
-        return name + "."
 
     # Figure out the host zone's ID from the query's hostname field.
     hosted_zone = get_hosted_zone data.hostname
@@ -48,7 +42,7 @@ module.exports =
       # Public Record
       record =
         zone_id: config.public_dns_id
-        hostname: fully_qualified data.hostname
+        hostname: data.hostname
 
       if data.type? && data.type != ""
         record.type = data.type
@@ -66,7 +60,7 @@ module.exports =
       # Private Record
       record =
         zone_id: config.private_dns_id
-        hostname: fully_qualified data.hostname
+        hostname: data.hostname
 
       if data.type? && data.type != ""
         record.type = data.type
