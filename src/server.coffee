@@ -1,11 +1,15 @@
-http = require "http"
-kick = require "./kick"
+{call} = require "when/generator"
+{processor} = require "pbx"
+initialize = require "./handlers"
+api = require "./api"
+api.base_url = "http://localhost:8080"
 
 #=========================
 # Launch Server
 #=========================
 
-http.createServer(kick).listen 8080, ->
-  console.log '===================================='
-  console.log '  The server is online and ready.'
-  console.log '===================================='
+call ->
+  (require "http")
+  .createServer yield (processor api, initialize)
+  .listen 8080, ->
+    console.log "Server listening on #{api.base_url}"

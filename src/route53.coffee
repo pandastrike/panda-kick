@@ -106,3 +106,32 @@ module.exports = (config) ->
     result: data
     change_id: data.ChangeInfo.Id
 
+  # To give the server more flexibility, sending a POST request activates this function,
+  # which will detect whether the DNS record exists or not before making changes.
+  # It calls 'add' or "update" as approrpriate and doesn't make the user track the state
+  # of Amazon's DNS records.
+  set_dns_record: async (record) ->
+    # We need to determine if the requested hostname is currently assigned in a DNS record.
+    {current_ip_address, current_type} = yield api.get_current_record( record.hostname, record.zone_id)
+
+    if current_ip_address?
+      # There is already a record.  Change it.
+      params =
+        hostname: record.hostname
+        zone_id: record.zone_id
+        current_ip_address: current_ip_address
+        current_type: current_type
+        type: record.type
+        ip_address: record.ip_address
+
+      return yield api.update_dns_record params
+    else
+      # No existing record is associated with this hostname.  Create one.
+      params =
+        hostname: record.hostname
+        zone_id: record.zone_id
+        type: record.type
+        ip_address: record.ip_address
+
+      return yield api.add_dns_record params
+

@@ -5,7 +5,7 @@
   "main": "src/server.coffee",
   "scripts": {
     "start": "coffee --nodejs --harmony src/server.coffee",
-    "test":  "coffee --nodejs --harmony test/index.coffee"
+    "test": "coffee --nodejs --harmony test/index.coffee"
   },
   "repository": {
     "type": "git",
@@ -28,6 +28,8 @@
     "aws-sdk": "^2.1.6",
     "c50n": "^0.7.2",
     "fairmont": "^1.0.0-alpha-04",
+    "pbx": "^1.0.0-alpha-14",
+    "pirate": "^1.0.0-alpha-05",
     "underscore": "^1.7.0",
     "when": "^3.6.4"
   },
