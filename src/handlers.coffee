@@ -5,6 +5,7 @@ async = (require "when/generator").lift
 {Memory} = require "pirate"
 {build_record, load} = require "./helpers"
 
+# Temporary storage for records and their change IDs
 adapter = Memory.Adapter.make()
 
 module.exports = async ->
@@ -31,13 +32,28 @@ module.exports = async ->
         respond 200, record
 
       else
-        respond 404, "Not found"
+        respond.not_found()
 
     put: validate async ({respond, data, match: {path: {hostname}}}) ->
-      yield records.put hostname, (yield data)
-      respond 200, "Updated"
+      record = yield records.get hostname
+
+      if record?
+        {hostname} = record = build_record (yield data), config
+        {change_id} = yield route53.set_dns_record record
+        extend record, ChangeInfo: Id: change_id
+        yield records.put hostname, record
+        respond 200, "Updated"
+
+      else
+        respond.not_found()
 
     delete: async ({respond, match: {path: {hostname}}}) ->
-      yield records.delete hostname
-      respond 200, "Deleted"
+      record = yield records.get hostname
 
+      if record?
+        yield route53.delete_dns_record record
+        yield records.delete hostname
+        respond 200, "Deleted"
+
+      else
+        respond.not_found()

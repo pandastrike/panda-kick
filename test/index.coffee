@@ -39,14 +39,13 @@ describe "Kick Server", (context) ->
             yield sleep 5000
           else break
 
-    # context.test "Update DNS record", ->
-    #   yield record.put
-    #     hostname: "test.sparkles.cluster"
-    #     ip_address: "10.11.22.33"
-    #     port: 1234
-    #     type: "A"
-    #
-    #   context.test "Remove DNS record", ->
-    #     yield record.delete()
+        context.test "Update DNS record", ->
+          yield record.put
+            hostname: "test.sparkles.cluster"
+            ip_address: "10.11.22.33"
+            port: 1234
+            type: "A"
 
+          context.test "Remove DNS record", ->
+            yield record.delete()
 
