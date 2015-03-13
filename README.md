@@ -21,7 +21,9 @@ In the current iteration, the kick server only allows us to query and modify DNS
 
 ## How to use
 
-When using [panda-cluster][pc] or [Huxley][huxley], a kick server will automatically be set up for you, with an internal address of `kick.<cluster_name>.cluster`. You can make requests to the server from anywhere within the the cluster as follows.
+When using [panda-cluster][pc] or [Huxley][huxley], a kick server will automatically be set up for you, with an internal address of `kick.<cluster_name>.cluster`. You can make requests to the server from anywhere within the the cluster.
+
+For POST and PUT requests, the server expects a JSON payload with a `Content-Type` of `application/vnd.kick.record+json`. A GET requests yields a JSON payload with the same mime type.
 
 ### Creating a domain name
 
