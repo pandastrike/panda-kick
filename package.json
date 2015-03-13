@@ -18,7 +18,8 @@
     "Cluster",
     "AWS"
   ],
-  "author": "David Harper (david@pandastrike.com)",
+  "author": "David Harper <david@pandastrike.com>",
+  "contributors": ["Christoph Wagner <christoph@pandastrike.com>"],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/pandastrike/panda-cluster-kick/issues"
