@@ -26,7 +26,7 @@ When using [panda-cluster][pc] or [Huxley][huxley], a kick server will automatic
 ### Creating a domain name
 
 ```bash
-curl -XPOST kick.<private_domain>:2000/records -d '{
+curl -XPOST kick.<cluster_name>.cluster:2000/records -d '{
 "hostname": "<hostname>",
 "ip_address": "<ip_address>",
 "port": "<port>",
@@ -44,13 +44,13 @@ Where
 ### Retrieving a domain name and status
 
 ```bash
-curl -XGET kick.<private_domain>:2000/record/<hostname>
+curl -XGET kick.<cluster_name>.cluster:2000/record/<hostname>
 ```
 
 ### Updating a domain name
 
 ```bash
-curl -XPUT kick.<private_domain>:2000/record/<hostname> -d '{
+curl -XPUT kick.<cluster_name>.cluster:2000/record/<hostname> -d '{
 "hostname": "<new_hostname>",
 "ip_address": "<ip_address>",
 "port": "<port>",
@@ -61,7 +61,7 @@ curl -XPUT kick.<private_domain>:2000/record/<hostname> -d '{
 ### Removing a domain name
 
 ```bash
-curl -XDELETE kick.<private_domain>:2000/record/<hostname>
+curl -XDELETE kick.<cluster_name>.cluster:2000/record/<hostname>
 ```
 
 [pbx]: https://github.com/pandastrike/pbx
