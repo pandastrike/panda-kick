@@ -18,7 +18,7 @@ module.exports = async ->
     create: validate async ({respond, url, data}) ->
       {hostname} = record = build_record (yield data), config
       {change_id} = yield route53.set_dns_record record
-      extend record, ChangeInfo: Id: change_id
+      extend record, {change_id}
       yield records.put hostname, record
       respond 201, "Created", location: url "record", {hostname}
 
@@ -27,8 +27,9 @@ module.exports = async ->
       record = yield records.get hostname
 
       if record? # if record exists, check its status
-        data = yield route53.get_record_status record.ChangeInfo.Id
-        extend record, data
+        {status} = yield route53.get_record_status record.change_id
+        delete record.change_id
+        extend record, {status}
         respond 200, record
 
       else
@@ -40,7 +41,7 @@ module.exports = async ->
       if record?
         {hostname} = record = build_record (yield data), config
         {change_id} = yield route53.set_dns_record record
-        extend record, ChangeInfo: Id: change_id
+        extend record, {change_id}
         yield records.put hostname, record
         respond 200, "Updated"
 

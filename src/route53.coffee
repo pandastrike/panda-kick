@@ -49,7 +49,11 @@ module.exports = (config) ->
 
   # This function checks the specified DNS record to see if its "INSYC", done updating.
   # It returns either true or false, and throws an exception if an AWS error is reported.
-  get_record_status: (change_id) -> get_change {Id: change_id}
+  get_record_status: async (change_id) ->
+    data = yield get_change {Id: change_id}
+
+    result: data
+    status: data.ChangeInfo.Status
 
   # Get the DNS record currently associated with the hostname.
   get_current_record: async (hostname, zone_id) ->

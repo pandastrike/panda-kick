@@ -4,7 +4,7 @@ Sidekick Server For Huxley Clusters - Cluster Agent with AWS Credentials
 
 > **Warning:** This is an experimental project under heavy development.  It's awesome and becoming even more so, but it is a work in progress.
 
-## Definition
+## Summary
 
 This repository defines the kick API server (short for sidekick). It's a primitive, meta API server that allows the cluster to alter itself independently of a remote actor.  The kick server is Dockerized and available from pandastrike/pc_kick.
 
@@ -23,7 +23,14 @@ In the current iteration, the kick server only allows us to query and modify DNS
 
 When using [panda-cluster][pc] or [Huxley][huxley], a kick server will automatically be set up for you, with an internal address of `kick.<cluster_name>.cluster`. You can make requests to the server from anywhere within the the cluster.
 
+## API
+
+> **Note**: the API is still under development and subject to change
+
+The API follows the standard REST design as closely as possible.
+
 For POST and PUT requests, the server expects a JSON payload with a `Content-Type` of `application/vnd.kick.record+json`. A GET requests yields a JSON payload with the same mime type.
+
 
 ### Creating a domain name
 
@@ -48,6 +55,22 @@ Where
 ```bash
 curl -XGET kick.<cluster_name>.cluster:2000/record/<hostname>
 ```
+
+Response: 
+
+```
+{
+  "zone_id": "/hostedzone/Z1DMXIJWKH77X5",
+  "hostname": "test.sparkles.cluster",
+  "type": "A",
+  "ip_address": "10.1.2.3",
+  "status": "PENDING"
+}
+```
+
+The `status` field indicates whether the record has been propagated across all DNS servers or not. It can either be `PENDING` or `INSYNC`, the latter indicating that the record has been successfully set and is currently active.
+
+After requesting a change (creating or updating a record), you should poll this resource until the `status` changes to `INSYNC`. 
 
 ### Updating a domain name
 

@@ -32,9 +32,10 @@ describe "Kick Server", (context) ->
 
       context.test "Poll for changes", ->
         loop
-          console.log "Polling for changes. This may take a while."
+          console.log "Waiting for DNS changes to synchronize. This may take a while."
           {data} = yield record.get()
-          if (yield data).ChangeInfo.Status == "PENDING"
+          {status} = yield data
+          if status == "PENDING"
             yield sleep 5000
           else break
 
