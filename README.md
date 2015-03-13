@@ -27,11 +27,19 @@ When using [panda-cluster][pc] or [Huxley][huxley], a kick server will automatic
 
 ```bash
 curl -XPOST kick.<private_domain>:2000/records -d '{
-"hostname": "<hostname>",       # The hostname to set up
-"ip_address": "<ip_address>",   #  Usually ${COREOS_PRIVATE_IPV4} in the .service file
-"port": "<port>",               # Only used for SRV records
-"type": "<type>"}'              # Almost always "A", but also accepts SRV
+"hostname": "<hostname>",
+"ip_address": "<ip_address>",
+"port": "<port>",
+"type": "<type>"}'
+-H 'Content-Type: application/vnd.kick.record+json'
 ```
+
+Where
+
+- `<hostname>` is the hostname to be set up
+- `<ip_address>` is the IP address of the host
+- `<port>` is the port (only used for `SRV` records)
+- `<type>` is the record type usually `A`, sometimes `SRV`
 
 ### Retrieving a domain name and status
 
@@ -47,6 +55,7 @@ curl -XPUT kick.<private_domain>:2000/record/<hostname> -d '{
 "ip_address": "<ip_address>",
 "port": "<port>",
 "type": "<type>"}'
+-H 'Content-Type: application/vnd.kick.record+json'
 ```
 
 ### Removing a domain name
