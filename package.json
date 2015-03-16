@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Kick-Server For Huxley Clusters - Grants Self-Sufficient Autonomy to Cluster Deployments",
   "main": "src/server.coffee",
+  "bin": "./bin/kick",
   "scripts": {
     "start": "coffee --nodejs --harmony src/server.coffee",
     "test": "coffee --nodejs --harmony test/index.coffee"

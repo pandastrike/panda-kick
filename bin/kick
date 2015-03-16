@@ -1,0 +1,52 @@
+#!/usr/bin/env coffee --nodejs --harmony
+
+{property} = require "fairmont"
+{basename} = require "path"
+
+[_, script, action, args...] = process.argv
+
+url = "http://localhost:8080"
+
+switch action
+  when "create"
+    if args[0] == "-h" or args[0] == "--help"
+      console.log "Usage: #{basename script} create <hostname> <ip_address> <type> [port]"
+    else
+      params =
+        hostname: property 0
+        ip_address: property 1
+        type: property 2
+        port: property 3
+
+      record = {}
+      for name, access of params
+        record[name] = access args
+
+      console.log record
+
+      (new Client url).create record
+
+  when "read"
+    if args[0] == "-h" or args[0] == "--help"
+      console.log "Usage: #{basename script} read <hostname>"
+    else
+      hostname = args[0]
+      (new Client url).read hostname
+
+  when "delete"
+    if args[0] == "-h" or args[0] == "--help"
+      console.log "Usage: #{basename script} delete <hostname>"
+    else
+      hostname = args[0]
+      (new Client url).delete hostname
+
+  when "-h", "--help"
+    console.log "Usage: #{basename script} <action> <arguments>"
+    console.log "Where <action> is one of 'create', 'read', 'delete'"
+    console.log "Use '#{basename script} <action>' with '-h' or '--help' to get help for each action"
+
+  else
+    console.log "Unknown action '#{action}'"
+    console.log "Use '-h' or '--help' to get help"
+    process.exit 1
+
