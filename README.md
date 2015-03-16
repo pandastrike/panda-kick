@@ -60,7 +60,6 @@ Response:
 
 ```
 {
-  "zone_id": "/hostedzone/Z1DMXIJWKH77X5",
   "hostname": "test.sparkles.cluster",
   "type": "A",
   "ip_address": "10.1.2.3",
