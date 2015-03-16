@@ -1,10 +1,12 @@
 {
   "name": "panda-cluster-kick",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Kick-Server For Huxley Clusters - Grants Self-Sufficient Autonomy to Cluster Deployments",
-  "main": "kick.coffee",
+  "main": "src/server.coffee",
+  "bin": "./bin/kick",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "coffee --nodejs --harmony src/server.coffee",
+    "test": "coffee --nodejs --harmony test/index.coffee"
   },
   "repository": {
     "type": "git",
@@ -17,7 +19,8 @@
     "Cluster",
     "AWS"
   ],
-  "author": "David Harper (david@pandastrike.com)",
+  "author": "David Harper <david@pandastrike.com>",
+  "contributors": ["Christoph Wagner <christoph@pandastrike.com>"],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/pandastrike/panda-cluster-kick/issues"
@@ -26,7 +29,14 @@
   "dependencies": {
     "aws-sdk": "^2.1.6",
     "c50n": "^0.7.2",
+    "fairmont": "^1.0.0-alpha-04",
+    "pbx": "^1.0.0-alpha-14",
+    "pirate": "^1.0.0-alpha-05",
     "underscore": "^1.7.0",
     "when": "^3.6.4"
+  },
+  "devDependencies": {
+    "amen": "^1.0.0-alpha-06",
+    "supertest": "^0.15.0"
   }
 }
