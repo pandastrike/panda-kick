@@ -28,9 +28,14 @@ module.exports = async ->
 
       if record? # if record exists, check its status
         {status} = yield route53.get_record_status record.change_id
-        delete record.change_id
         extend record, {status}
-        respond 200, record
+        # TODO: is there a nicer way to filter out only fields we want?
+        respond 200,
+          hostname: record.hostname
+          ip_address: record.ip_address
+          port: record.port
+          type: record.type
+          status: record.status
 
       else
         respond.not_found()
