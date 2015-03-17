@@ -69,7 +69,16 @@ Response:
 
 The `status` field indicates whether the record has been propagated across all DNS servers or not. It can either be `PENDING` or `INSYNC`, the latter indicating that the record has been successfully set and is currently active.
 
-After requesting a change (creating or updating a record), you should poll this resource until the `status` changes to `INSYNC`. 
+### Polling for status updates
+
+After the record is set, it takes a while until the changes are propagated through the DNS system.
+In order to make sure your settings have been made permanent, you can use the following snippet, while polls the server every 5 seconds and stops when the record status indicates the changes have been set.
+
+```bash
+until curl kick.<cluster_name>.cluster:2000/record/<hostname> | grep -o 'INSYNC'; do
+  sleep 5
+done
+```
 
 ### Updating a domain name
 
