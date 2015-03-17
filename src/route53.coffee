@@ -114,7 +114,13 @@ module.exports = (config) ->
     # We need to determine if the requested hostname is currently assigned in a DNS record.
     {current_ip_address, current_type} = yield @get_current_record(record.hostname, record.zone_id)
 
-    if current_ip_address?
+    if current_ip_address == record.ip_address and
+       current_type == record.type
+      # The existing record already matches what we're trying to set
+      # -> nothing to do here!
+      result: record
+      status: "INSYNC"
+    else if current_ip_address?
       # There is already a record.  Change it.
       params =
         hostname: record.hostname
