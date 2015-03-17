@@ -17,8 +17,8 @@ module.exports = async ->
   records:
     create: validate async ({respond, url, data}) ->
       {hostname} = record = build_record (yield data), config
-      {change_id} = yield route53.set_dns_record record
-      extend record, {change_id}
+      {change_id, status} = yield route53.set_dns_record record
+      extend record, {change_id, status}
       yield records.put hostname, record
       respond 201, "Created", location: url "record", {hostname}
 
@@ -27,8 +27,9 @@ module.exports = async ->
       record = yield records.get hostname
 
       if record? # if record exists, check its status
-        {status} = yield route53.get_record_status record.change_id
-        extend record, {status}
+        if record.change_id?
+          {status} = yield route53.get_record_status record.change_id
+          extend record, {status}
         # TODO: is there a nicer way to filter out only fields we want?
         respond 200,
           hostname: record.hostname
@@ -44,9 +45,9 @@ module.exports = async ->
       record = yield records.get hostname
 
       if record?
-        {hostname} = record = build_record (yield data), config
-        {change_id} = yield route53.set_dns_record record
-        extend record, {change_id}
+        record = build_record (yield data), config
+        {change_id, status} = yield route53.set_dns_record record
+        extend record, {change_id, status}
         yield records.put hostname, record
         respond 200, "Updated"
 

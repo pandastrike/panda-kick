@@ -39,13 +39,29 @@ describe "Kick Server", (context) ->
             yield sleep 5000
           else break
 
-        context.test "Update DNS record", ->
-          yield record.put
-            hostname: "test.sparkles.cluster"
-            ip_address: "10.11.22.33"
-            port: 1234
-            type: "A"
+        assert status == "INSYNC"
 
-          context.test "Remove DNS record", ->
-            yield record.delete()
+        context.test "Update DNS record", (context) ->
+
+          context.test "with same IP address", ->
+            yield record.put TestRecord
+            {data} = yield record.get()
+            {status} = yield data
+            assert status == "INSYNC"
+
+          context.test "with different IP address", (context) ->
+            yield record.put
+              hostname: "test.sparkles.cluster"
+              ip_address: "10.11.22.33"
+              port: 1234
+              type: "A"
+
+            {data} = yield record.get()
+            {ip_address, status} = yield data
+            
+            assert ip_address == "10.11.22.33"
+            assert status == "PENDING"
+
+            context.test "Remove DNS record", ->
+              yield record.delete()
 
