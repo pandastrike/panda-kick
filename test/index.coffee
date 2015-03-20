@@ -65,3 +65,11 @@ describe "Kick Server", (context) ->
             context.test "Remove DNS record", ->
               yield record.delete()
 
+  context.test "Create a status event", ->
+    api = yield discover "http://localhost:8080"
+
+    {response: headers: {location}} =
+      yield api.status.create
+        service: "test"
+        state: "starting"
+

@@ -16,6 +16,15 @@ builder.define "record", template: "/record/:hostname"
     port: type: "integer"
     type: type: "string"
 
+builder.define "status"
+.post as: "create", creates: "status"
+.schema
+  required: ["service", "state"]
+  properties:
+    service: type: "string"
+    state: type: "string"
+    details: type: "object"
+
 builder.reflect()
 
 module.exports = builder.api
