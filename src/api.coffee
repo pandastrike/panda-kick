@@ -25,7 +25,7 @@ builder.define "status"
     application_id: type: "string"
     deployment_id: type: "string"
     status: type: "string"
-    details: type: "object"
+    detail: type: "object"
 
 builder.reflect()
 
