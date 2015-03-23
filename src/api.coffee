@@ -19,10 +19,12 @@ builder.define "record", template: "/record/:hostname"
 builder.define "status"
 .post as: "create", creates: "status"
 .schema
-  required: ["service", "state"]
+  required: ["service", "status", "application_id", "deployment_id"]
   properties:
     service: type: "string"
-    state: type: "string"
+    application_id: type: "string"
+    deployment_id: type: "string"
+    status: type: "string"
     details: type: "object"
 
 builder.reflect()
