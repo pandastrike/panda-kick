@@ -58,18 +58,10 @@ describe "Kick Server", (context) ->
 
             {data} = yield record.get()
             {ip_address, status} = yield data
-            
+
             assert ip_address == "10.11.22.33"
             assert status == "PENDING"
 
             context.test "Remove DNS record", ->
               yield record.delete()
-
-  context.test "Create a status event", ->
-    api = yield discover "http://localhost:8080"
-
-    {response: headers: {location}} =
-      yield api.status.create
-        service: "test"
-        state: "starting"
 
