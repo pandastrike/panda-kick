@@ -5,7 +5,7 @@ assert = require "assert"
 describe "Kick Server", (context) ->
 
   context.test "Create a status event", ->
-    api = yield discover "http://localhost:8081"
+    api = yield discover "http://localhost:8080"
 
     {response: headers: {location}} =
       yield api.status.create
