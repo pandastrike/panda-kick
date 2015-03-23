@@ -87,7 +87,7 @@ curl -XPUT kick.<cluster_name>.cluster:2000/record/<hostname> -d '{
 "hostname": "<new_hostname>",
 "ip_address": "<ip_address>",
 "port": "<port>",
-"type": "<type>"}'
+"type": "<type>"}' \
 -H 'Content-Type: application/vnd.kick.record+json'
 ```
 
@@ -100,3 +100,20 @@ curl -XDELETE kick.<cluster_name>.cluster:2000/record/<hostname>
 [pbx]: https://github.com/pandastrike/pbx
 [pc]: https://github.com/pandastrike/panda-cluster
 [huxley]: https://github.com/pandastrike/huxley
+
+### Posting a status update
+
+This allows services to share their current status information.
+
+```bash
+curl -XPOST kick.<cluster_name>.cluster:2000/status-d '{
+"service": "test-service", 
+"application_id": "<app_id>",
+"deployment_id": "<deploy_id>",
+"status":"starting",
+"detail": "<optional, object or string>"
+}' \
+-H 'Content-Type: application/vnd.kick.status+json' 
+```
+
+This information will be forwarded to the responsible Huxley API server.
