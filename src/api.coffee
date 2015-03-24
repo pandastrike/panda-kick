@@ -1,3 +1,4 @@
+{w} = require "fairmont"
 {Builder} = require "pbx"
 builder = new Builder "kick"
 
@@ -24,7 +25,7 @@ builder.define "status"
     service: type: "string"
     application_id: type: "string"
     deployment_id: type: "string"
-    status: type: "string"
+    status: enum: w "starting running failed shutting_down stopped"
     detail: type: "object"
 
 builder.reflect()

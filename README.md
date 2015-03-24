@@ -117,3 +117,11 @@ curl -XPOST kick.<cluster_name>.cluster:2000/status-d '{
 ```
 
 This information will be forwarded to the responsible Huxley API server.
+
+**IMPORTANT**: The `status` field should be one of the following:
+
+- `starting`
+- `running`
+- `failed`
+- `shutting_down`
+- `stopped`
