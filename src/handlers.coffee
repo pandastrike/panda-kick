@@ -4,6 +4,7 @@ async = (require "when/generator").lift
 {resolve} = require "path"
 {extend} = require "fairmont"
 {Memory} = require "pirate"
+{Channel, Transport} = require "mutual"
 {build_record, load} = require "./helpers"
 
 # Temporary storage for records and their change IDs
@@ -14,10 +15,12 @@ module.exports = async ->
   config = yield load (resolve __dirname, "../config/kick.cson")
   route53 = (require "./route53")(config.AWS)
   records = yield adapter.collection "records"
-  huxley_api = try
-    yield discover config.api_server
-  catch e
-    console.error "Warning: could not connect to API server."
+
+  # Set up a message channel to transmit status events
+  # TODO: how to configure the Redis server's address?
+  transport = Transport.Queue.Redis.create()
+  # TODO: what do we name the channel?
+  channel = Channel.create transport, "hello"
 
   records:
     create: validate async ({respond, url, data}) ->
@@ -75,5 +78,5 @@ module.exports = async ->
       status = yield data
       status.cluster_id = config.cluster_id
       status.timestamp = Date.now()
-      yield huxley_api?.status.post status
+      channel.emit {status}
       respond 201, "Created"
