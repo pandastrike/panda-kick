@@ -3,18 +3,15 @@ async = (require "when/generator").lift
 {discover} = (require "pbx").client
 {resolve} = require "path"
 {extend} = require "fairmont"
-{Memory} = require "pirate"
-{build_record, load} = require "./helpers"
+db = require "./db"
 channel = require "./events"
-
-# Temporary storage for records and their change IDs
-adapter = Memory.Adapter.make()
+{build_record, load} = require "./helpers"
 
 module.exports = async ->
 
   config = yield load (resolve __dirname, "../config/kick.cson")
   route53 = (require "./route53")(config.AWS)
-  records = yield adapter.collection "records"
+  records = yield db.collection "records"
 
   records:
     create: validate async ({respond, url, data}) ->
