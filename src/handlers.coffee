@@ -18,9 +18,9 @@ module.exports = async ->
 
   # Set up a message channel to transmit status events
   # TODO: how to configure the Redis server's address?
-  transport = Transport.Queue.Redis.create()
+  transport = Transport.Redis.Queue.create()
   # TODO: what do we name the channel?
-  channel = Channel.create transport, "hello"
+  channel = Channel.create "hello", transport
 
   records:
     create: validate async ({respond, url, data}) ->
