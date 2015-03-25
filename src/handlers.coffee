@@ -4,8 +4,8 @@ async = (require "when/generator").lift
 {resolve} = require "path"
 {extend} = require "fairmont"
 {Memory} = require "pirate"
-{Channel, Transport} = require "mutual"
 {build_record, load} = require "./helpers"
+channel = require "./events"
 
 # Temporary storage for records and their change IDs
 adapter = Memory.Adapter.make()
@@ -15,12 +15,6 @@ module.exports = async ->
   config = yield load (resolve __dirname, "../config/kick.cson")
   route53 = (require "./route53")(config.AWS)
   records = yield adapter.collection "records"
-
-  # Set up a message channel to transmit status events
-  # TODO: how to configure the Redis server's address?
-  transport = Transport.Redis.Queue.create()
-  # TODO: what do we name the channel?
-  channel = Channel.create "hello", transport
 
   records:
     create: validate async ({respond, url, data}) ->
