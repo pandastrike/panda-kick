@@ -36,7 +36,6 @@
     "when": "^3.6.4"
   },
   "devDependencies": {
-    "amen": "^1.0.0-alpha-06",
-    "supertest": "^0.15.0"
+    "amen": "^1.0.0-alpha-06"
   }
 }
