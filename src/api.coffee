@@ -1,3 +1,4 @@
+{w} = require "fairmont"
 {Builder} = require "pbx"
 builder = new Builder "kick"
 
@@ -15,6 +16,17 @@ builder.define "record", template: "/record/:hostname"
     ip_address: type: "string"
     port: type: "integer"
     type: type: "string"
+
+builder.define "status"
+.post as: "create", creates: "status"
+.schema
+  required: ["service", "status", "application_id", "deployment_id"]
+  properties:
+    service: type: "string"
+    application_id: type: "string"
+    deployment_id: type: "string"
+    status: enum: w "starting running failed shutting_down stopped"
+    detail: type: "object"
 
 builder.reflect()
 
