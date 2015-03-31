@@ -1,9 +1,11 @@
 {Channel, Transport} = require "mutual"
+{parse} = require "url"
 
-# Set up a message channel to transmit status events
-# TODO: how to configure the Redis server's address?
-transport = Transport.Redis.Queue.create()
-# TODO: what do we name the channel?
-channel = Channel.create "hello", transport
+module.exports = (config) ->
+  {hostname} = parse config.api_server
+  # We assume the Redis server runs on the same host as the
+  # API server, and on the default port (6379)
+  # TODO: make port configurable
+  transport = Transport.Redis.Queue.create(host: hostname)
+  channel = Channel.create "huxley", transport
 
-module.exports = channel

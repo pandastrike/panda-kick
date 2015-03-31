@@ -19,7 +19,7 @@ describe "Kick Server", (context) ->
     for status in w "starting running failed shutting_down stopped"
       do (status) ->
         context.test "Status: #{status}", (context) ->
-          channel = Channel.create "hello", Transport.Redis.Queue.create()
+          channel = Channel.create "huxley", Transport.Redis.Queue.create()
 
           message = promise (resolve, reject) ->
             channel.once status: (status) ->

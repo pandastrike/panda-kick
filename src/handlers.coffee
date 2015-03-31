@@ -4,7 +4,6 @@ async = (require "when/generator").lift
 {resolve} = require "path"
 {extend} = require "fairmont"
 db = require "./db"
-channel = require "./events"
 {build_record, load} = require "./helpers"
 
 module.exports = async ->
@@ -12,6 +11,7 @@ module.exports = async ->
   config = yield load (resolve __dirname, "../config/kick.cson")
   route53 = (require "./route53")(config.AWS)
   records = yield db.collection "records"
+  events = (require "./events")(config)
 
   records:
     create: validate async ({respond, url, data}) ->
@@ -69,5 +69,5 @@ module.exports = async ->
       status = yield data
       status.cluster_id = config.cluster_id
       status.timestamp = Date.now()
-      channel.emit {status}
+      events.emit {status}
       respond 201, "Created"
