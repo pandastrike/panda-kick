@@ -3,21 +3,15 @@ async = (require "when/generator").lift
 {discover} = (require "pbx").client
 {resolve} = require "path"
 {extend} = require "fairmont"
-{Memory} = require "pirate"
+db = require "./db"
 {build_record, load} = require "./helpers"
-
-# Temporary storage for records and their change IDs
-adapter = Memory.Adapter.make()
 
 module.exports = async ->
 
   config = yield load (resolve __dirname, "../config/kick.cson")
   route53 = (require "./route53")(config.AWS)
-  records = yield adapter.collection "records"
-  huxley_api = try
-    yield discover config.api_server
-  catch e
-    console.error "Warning: could not connect to API server."
+  records = yield db.collection "records"
+  events = (require "./events")(config)
 
   records:
     create: validate async ({respond, url, data}) ->
@@ -75,5 +69,5 @@ module.exports = async ->
       status = yield data
       status.cluster_id = config.cluster_id
       status.timestamp = Date.now()
-      yield huxley_api?.status.post status
+      events.emit {status}
       respond 201, "Created"
