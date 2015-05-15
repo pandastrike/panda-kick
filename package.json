@@ -30,7 +30,7 @@
     "aws-sdk": "^2.1.6",
     "c50n": "^0.7.2",
     "fairmont": "^1.0.0-alpha-04",
-    "pbx": "^1.0.0-alpha-14",
+    "pbx": "pandastrike/pbx#huxley",
     "pirate": "^1.0.0-alpha-05",
     "underscore": "^1.7.0",
     "when": "^3.6.4"
