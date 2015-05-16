@@ -4,9 +4,8 @@ MAINTAINER David Harper (david@pandastrike.com)
 # Kick Server - Huxley
 #===============================================================================
 # This Dockerfile describes a kick server for a Huxley cluster. (short for sidekick).
-# It's a primative, meta API server that allows the cluster to alter itself
-# independently of a remote actor.  The Kick server also contains the library of
-# all Huxley mixins.
+# It's a meta API server that allows the cluster to alter itself
+# independently of a remote actor. 
 
 # Install requirements and some tools that make life easier.
 #RUN pacman -Syu --noconfirm
