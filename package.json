@@ -19,8 +19,10 @@
     "Cluster",
     "AWS"
   ],
-  "author": "David Harper <david@pandastrike.com>",
-  "contributors": ["Christoph Wagner <christoph@pandastrike.com>"],
+  "contributors": [
+    "David Harper <david@pandastrike.com>",
+    "Dan Yoder <dan@pandastrike.com"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/pandastrike/panda-cluster-kick/issues"
@@ -28,10 +30,10 @@
   "homepage": "https://github.com/pandastrike/panda-cluster-kick",
   "dependencies": {
     "aws-sdk": "^2.1.6",
-    "c50n": "^0.7.2",
-    "fairmont": "^1.0.0-alpha-04",
-    "pbx": "pandastrike/pbx#huxley",
-    "pirate": "^1.0.0-alpha-05",
+    "c50n": "0.7.2",
+    "fairmont": "1.0.0-alpha-04",
+    "pbx": "1.0.0-beta-05",
+    "pirate": "1.0.0-alpha-05",
     "underscore": "^1.7.0",
     "when": "^3.6.4"
   },
