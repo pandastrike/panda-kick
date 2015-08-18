@@ -29,9 +29,10 @@
   },
   "homepage": "https://github.com/pandastrike/panda-cluster-kick",
   "dependencies": {
-    "aws-sdk": "^2.1.6",
+    "aws-sdk": "^2.1.45",
     "c50n": "0.7.2",
-    "fairmont": "1.0.0-alpha-04",
+    "fairmont": "1.0.0-beta-03",
+    "log4js": "^0.6.26",
     "pbx": "1.0.0-beta-05",
     "pirate": "1.0.0-alpha-05",
     "underscore": "^1.7.0",

@@ -1,9 +1,17 @@
-{call} = require "when/generator"
-{processor} = require "pbx"
+#===============================================================================
+# Huxley Agent
+#===============================================================================
+# stdlib
 {parse} = require "url"
-initialize = require "./handlers"
-api = require "./api"
-api.base_url = "http://localhost:8080"
+
+# panda-lib
+{call} = require "fairmont"
+{processor} = require "pbx"
+
+# internal
+handlers = require "./api/handlers"
+spec = require "./api/spec"
+port = 8080
 
 #=========================
 # Launch Server
@@ -11,6 +19,6 @@ api.base_url = "http://localhost:8080"
 
 call ->
   (require "http")
-  .createServer yield (processor api, initialize)
-  .listen (parse api.base_url).port, ->
-    console.log "Server listening on #{api.base_url}"
+  .createServer yield (processor spec, handlers)
+  .listen port, ->
+    console.log "Server listening on #{port}"
