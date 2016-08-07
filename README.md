@@ -1,8 +1,12 @@
 # panda-kick
 
-Sidekick Server For Huxley Clusters - Cluster Agent with AWS Credentials
+> **IMPORTANT** This project is no longer under active development.
+> Based on what we've learned building this,
+> we recommend looking at [Convox][] instead.
 
-> **Warning:** This is an experimental project under heavy development.  It's awesome and becoming even more so, but it is a work in progress.
+[Convox]:https://github.com/convox/rack
+
+Sidekick Server For Huxley Clusters - Cluster Agent with AWS Credentials
 
 ## Summary
 
